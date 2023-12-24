@@ -2,6 +2,7 @@ const { validationResult } = require("express-validator");
 const query = require("../db/index.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const es = require("../elasticsearch.js");
 
 exports.admin_login = async (req, res) => {
   const result = validationResult(req);
@@ -79,6 +80,15 @@ exports.admin_create_product = async (req, res) => {
       new Date(),
     ];
     const q = await query(text, values);
+    await es.index({
+      index: "product_index",
+      body: {
+        product_id: q.rows[0].product_id,
+        product_name,
+        description,
+      },
+    });
+
     return res.status(200).send({ product: q.rows });
   } catch (err) {
     console.log(err);

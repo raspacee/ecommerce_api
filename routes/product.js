@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const productController = require("../controllers/productController.js");
 
 /* Place a order */
 router.post("/order", (req, res) => {});
@@ -7,7 +8,7 @@ router.post("/order", (req, res) => {});
 router.delete("/order", (req, res) => {});
 
 /* Search a product using query */
-router.get("/search", (req, res) => {});
+router.get("/search", productController.product_search);
 
 /* Get top selling products */
 router.get("/top_selling", (req, res) => {});
