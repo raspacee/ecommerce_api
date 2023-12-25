@@ -1,5 +1,5 @@
 const { body } = require("express-validator");
-const query = require("../db/index.js");
+const { query } = require("../db/index.js");
 
 exports.user_signup_validator = [
   body("address_line_1", "Address line 1 missing").trim().notEmpty(),

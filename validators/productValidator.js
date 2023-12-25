@@ -1,5 +1,5 @@
 const { body } = require("express-validator");
-const query = require("../db/index.js");
+const { query } = require("../db/index.js");
 
 exports.place_order_validator = [
   body("cart")

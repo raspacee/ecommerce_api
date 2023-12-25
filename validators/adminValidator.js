@@ -1,5 +1,5 @@
 const { body, check } = require("express-validator");
-const query = require("../db/index.js");
+const { query } = require("../db/index.js");
 
 exports.admin_login_validator = [
   body("email", "Email field missing")
@@ -48,3 +48,10 @@ exports.admin_create_supplier_validator = [
     .withMessage("Email invalid"),
   body("postal_code").trim(),
 ];
+
+exports.admin_ship_order_validator = [
+  body("shipper_id").isInt(),
+  body("cart_id").isInt(),
+];
+
+exports.admin_fulfill_order_validator = [body("cart_id").isInt()];

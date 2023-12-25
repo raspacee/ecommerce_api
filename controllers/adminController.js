@@ -1,5 +1,5 @@
 const { validationResult } = require("express-validator");
-const query = require("../db/index.js");
+const { query } = require("../db/index.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const es = require("../elasticsearch.js");
@@ -121,6 +121,59 @@ exports.admin_create_supplier = async (req, res) => {
     const values2 = [supplier_name, address, telephone, email, postal_code];
     const q2 = await query(text2, values2);
     return res.status(200).send({ supplier: q2.rows });
+  } catch (err) {
+    return res.status(400).send({ errors: err });
+  }
+};
+
+exports.admin_ship_order = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(400).send({ errors: result.array() });
+  }
+
+  const { shipper_id, cart_id } = req.body;
+  try {
+    const q = await query("select shipper_id from cart where cart_id=$1", [
+      cart_id,
+    ]);
+    if (q.rows[0].shipper_id != null)
+      throw { error: "The order has already been shipped" };
+    await query(
+      "update cart set shipper_id=$1, shipped_on=$2 where cart_id=$3",
+      [shipper_id, new Date(), cart_id]
+    );
+    // TODO: send a email to customer to tell them order has been shipped
+    return res
+      .status(200)
+      .send({ message: `Order #${cart_id} has been shipped for delivery` });
+  } catch (err) {
+    return res.status(400).send({ errors: err });
+  }
+};
+
+exports.admin_fulfill_order = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(400).send({ errors: result.array() });
+  }
+
+  try {
+    const q = await query(
+      "select shipper_id, fulfilled from cart where cart_id=$1",
+      [req.body.cart_id]
+    );
+    if (q.rowCount == 0) throw { error: "Order not found" };
+    if (q.rows[0].fulfilled == true)
+      throw { error: "The order has already been fulfilled" };
+    else if (q.rows[0].shipper_id == null)
+      throw { error: "Cannot fulfill a order that has not been shipped yet" };
+    await query("update cart set fulfilled=TRUE where cart_id=$1", [
+      req.body.cart_id,
+    ]);
+    return res.status(200).send({
+      message: `Order #${req.body.cart_id} has been fulfilled successfully`,
+    });
   } catch (err) {
     return res.status(400).send({ errors: err });
   }

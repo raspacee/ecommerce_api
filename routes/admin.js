@@ -35,4 +35,20 @@ router.post(
   adminController.admin_create_supplier
 );
 
+/* Ship a order */
+router.post(
+  "/order/ship",
+  adminAuth.admin_auth,
+  adminValidator.admin_ship_order_validator,
+  adminController.admin_ship_order
+);
+
+/* Indicate that a order has been received by the customer */
+router.put(
+  "/order/ship",
+  adminAuth.admin_auth,
+  adminValidator.admin_fulfill_order_validator,
+  adminController.admin_fulfill_order
+);
+
 module.exports = router;
