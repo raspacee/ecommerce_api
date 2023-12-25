@@ -5,8 +5,14 @@ create table cart(
     created_at timestamp,
     fulfilled boolean not null,
     is_cancelled boolean,
+    ordered_by int,
+    total_cost int not null,
     
     constraint fk_shipper
         foreign key(shipper_id)
-            references shipper(shipper_id)
+            references shipper(shipper_id),
+    
+    constraint fk_user
+        foreign key(ordered_by)
+            references user_(user_id)
 );

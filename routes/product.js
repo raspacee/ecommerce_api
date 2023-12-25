@@ -1,10 +1,17 @@
 const router = require("express").Router();
 const productController = require("../controllers/productController.js");
+const productValidator = require("../validators/productValidator.js");
+const userAuth = require("../auth/userAuth.js");
 
 /* Place a order */
-router.post("/order", (req, res) => {});
+router.post(
+  "/order",
+  userAuth.user_auth,
+  productValidator.place_order_validator,
+  productController.place_order
+);
 
-/* Cancel a order if the order is not fulfilled yet */
+/* Cancel a order if the order is not shipped yet */
 router.delete("/order", (req, res) => {});
 
 /* Search a product using query */

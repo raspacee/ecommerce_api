@@ -13,6 +13,7 @@ router.post(
 /* Add new product */
 router.post(
   "/product",
+  adminAuth.admin_auth,
   adminValidator.admin_create_product_validator,
   adminController.admin_create_product
 );

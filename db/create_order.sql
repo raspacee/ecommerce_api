@@ -4,6 +4,7 @@ create table order_(
     order_unit int not null,
     created_at timestamp not null,
     cart_id int,
+    cost int not null,
 
     constraint fk_product
         foreign key(product_id)
