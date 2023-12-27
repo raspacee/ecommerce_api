@@ -87,7 +87,7 @@ exports.user_login = async (req, res) => {
           first_name: row.first_name,
           last_name: row.last_name,
         },
-        process.env.JWT_SECRET,
+        process.env.USER_JWT_SECRET,
         { expiresIn: "30d" }
       );
       return res.status(200).send({ token });

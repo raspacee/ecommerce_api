@@ -32,7 +32,7 @@ exports.admin_login = async (req, res) => {
           last_name: row.last_name,
           privilege: row.privilege,
         },
-        process.env.JWT_SECRET,
+        process.env.ADMIN_JWT_SECRET,
         { expiresIn: "30d" }
       );
       return res.status(200).send({ token });
