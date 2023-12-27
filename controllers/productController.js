@@ -180,3 +180,35 @@ exports.cancel_order = async (req, res) => {
     return res.status(400).send(err);
   }
 };
+
+exports.track_order = async (req, res) => {
+  try {
+    const q = await query(
+      "select ordered_by, shipped_on, shipper_id, created_at, fulfilled, is_cancelled, \
+      total_cost from cart where cart_id=$1",
+      [req.params.cart_id]
+    );
+    if (q.rowCount == 0) throw { error: "Order ID not found" };
+
+    if (q.rows[0].ordered_by != req.user.user_id) {
+      throw {
+        error:
+          "You cannot track this order since you did not create this order.",
+      };
+    } else if (q.rows[0].shipper_id) {
+      const q = await query(
+        "select s.name as shipper_name, s.telephone as shipper_tele, s.email as shipper_tele, \
+        c.shipped_on, c.cart_id, c.created_at, c.fulfilled, c.is_cancelled, c.total_cost \
+        from cart c inner join shipper s on c.shipper_id=s.shipper_id where c.cart_id=$1",
+        [req.params.cart_id]
+      );
+      return res.status(200).send({ order: q.rows[0] });
+    } else {
+      return res.status(200).send({ order: q.rows[0] });
+    }
+  } catch (err) {
+    if (err instanceof Error)
+      return res.status(400).send({ error: err.message });
+    return res.status(400).send(err);
+  }
+};

@@ -38,6 +38,10 @@ router.get("/:product_id", (req, res) => {});
 router.post("/review", (req, res) => {});
 
 /* Track a order */
-router.get("/order/:order_id", (req, res) => {});
+router.get(
+  "/order/:cart_id",
+  userAuth.user_auth,
+  productController.track_order
+);
 
 module.exports = router;
