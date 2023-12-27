@@ -9,3 +9,5 @@ exports.place_order_validator = [
   body("cart.*.product_id").isInt().withMessage("Product ID should be int"),
   body("cart.*.quantity").isInt().withMessage("Product quantity should be int"),
 ];
+
+exports.cancel_order_validator = [body("cart_id").isInt({ min: 1 }).notEmpty()];

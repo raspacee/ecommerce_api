@@ -12,7 +12,12 @@ router.post(
 );
 
 /* Cancel a order if the order is not shipped yet */
-router.delete("/order", (req, res) => {});
+router.delete(
+  "/order",
+  userAuth.user_auth,
+  productValidator.cancel_order_validator,
+  productController.cancel_order
+);
 
 /* Search a product using query */
 router.get("/search", productController.product_search);
@@ -31,5 +36,8 @@ router.get("/:product_id", (req, res) => {});
 
 /* Post a review on a product */
 router.post("/review", (req, res) => {});
+
+/* Track a order */
+router.get("/order/:order_id", (req, res) => {});
 
 module.exports = router;

@@ -139,3 +139,44 @@ exports.place_order = async (req, res) => {
     client.release();
   }
 };
+
+exports.cancel_order = async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(400).send({ errors: result.array() });
+  }
+
+  try {
+    const q = await query(
+      "select ordered_by, shipped_on, is_cancelled from cart where cart_id=$1",
+      [req.body.cart_id]
+    );
+    if (q.rowCount == 0) throw { error: "Order ID not found" };
+
+    if (q.rows[0].ordered_by != req.user.user_id) {
+      throw {
+        error:
+          "You cannot cancel this order since you did not create this order.",
+      };
+    } else if (q.rows[0].shipped_on) {
+      throw {
+        error: "Your order is already shipped. It cannot be canceled now.",
+      };
+    } else if (q.rows[0].is_cancelled) {
+      throw {
+        error: "Your order is already cancelled before.",
+      };
+    } else {
+      await query("update cart set is_cancelled = true where cart_id=$1", [
+        req.body.cart_id,
+      ]);
+      return res
+        .status(200)
+        .send({ message: "Successfully cancelled your order " });
+    }
+  } catch (err) {
+    if (err instanceof Error)
+      return res.status(400).send({ error: err.message });
+    return res.status(400).send(err);
+  }
+};
