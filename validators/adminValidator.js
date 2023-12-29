@@ -1,5 +1,6 @@
 const { body, check } = require("express-validator");
 const { query } = require("../db/index.js");
+const { CustomError } = require("../helpers/errorHandler.js");
 
 exports.admin_login_validator = [
   body("email", "Email field missing")
@@ -28,7 +29,8 @@ exports.admin_create_product_validator = [
       const q = await query("select email from supplier where supplier_id=$1", [
         supplier_id,
       ]);
-      if (q.rowCount == 0) throw new Error("Supplier ID does not exist");
+      if (q.rowCount == 0)
+        throw new CustomError(404, "Supplier ID does not exist");
     }),
   body("available_size").trim(),
   body("available_color").trim(),

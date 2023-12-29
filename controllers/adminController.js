@@ -7,11 +7,12 @@ const admin = require("../models/adminModel.js");
 const product = require("../models/productModel.js");
 const supplier = require("../models/supplierModel.js");
 const cart = require("../models/cartModel.js");
+const { CustomError } = require("../helpers/errorHandler.js");
 
-exports.admin_login = async (req, res) => {
+exports.admin_login = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const { email, password } = req.body;
@@ -19,7 +20,7 @@ exports.admin_login = async (req, res) => {
   try {
     const q = await admin.get_admin_by_email(email);
     if (q.rowCount == 0) {
-      return res.status(400).send({ error: ["Email not found"] });
+      throw new CustomError(404, "Email not found");
     }
     const row = q.rows[0];
 
@@ -37,17 +38,17 @@ exports.admin_login = async (req, res) => {
       );
       return res.status(200).send({ token });
     } else {
-      return res.status(400).send({ errors: ["Incorrect password"] });
+      throw new CustomError(401, "Incorrect password");
     }
   } catch (err) {
-    return res.status(400).send({ errors: err });
+    next(err);
   }
 };
 
-exports.admin_create_product = async (req, res) => {
+exports.admin_create_product = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const {
@@ -86,15 +87,14 @@ exports.admin_create_product = async (req, res) => {
 
     return res.status(200).send({ product: q.rows });
   } catch (err) {
-    console.log(err);
-    return res.status(400).send({ errors: err });
+    next(err);
   }
 };
 
-exports.admin_create_supplier = async (req, res) => {
+exports.admin_create_supplier = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const { supplier_name, address, telephone, email, postal_code } = req.body;
@@ -103,7 +103,7 @@ exports.admin_create_supplier = async (req, res) => {
     // Check if the supplier is already added
     const q = await supplier.get_supplier_by_email(email);
     if (q.rowCount > 0) {
-      return res.status(400).send({ error: ["Supplier already added"] });
+      throw new CustomError(409, "Supplier already added");
     }
 
     const q2 = await supplier.create_supplier(
@@ -115,14 +115,14 @@ exports.admin_create_supplier = async (req, res) => {
     );
     return res.status(200).send({ supplier: q2.rows });
   } catch (err) {
-    return res.status(400).send({ errors: err });
+    next(err);
   }
 };
 
-exports.admin_ship_order = async (req, res) => {
+exports.admin_ship_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const { shipper_id, cart_id } = req.body;
@@ -131,7 +131,7 @@ exports.admin_ship_order = async (req, res) => {
       cart_id,
     ]);
     if (q.rows[0].shipper_id != null)
-      throw { error: "The order has already been shipped" };
+      throw new CustomError(409, "The order has already been shipped");
     await query(
       "update cart set shipper_id=$1, shipped_on=$2 where cart_id=$3",
       [shipper_id, new Date(), cart_id]
@@ -141,23 +141,26 @@ exports.admin_ship_order = async (req, res) => {
       .status(200)
       .send({ message: `Order #${cart_id} has been shipped for delivery` });
   } catch (err) {
-    return res.status(400).send({ errors: err });
+    next(err);
   }
 };
 
-exports.admin_fulfill_order = async (req, res) => {
+exports.admin_fulfill_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   try {
     const q = await cart.get_cart_by_id(req.body.cart_id);
-    if (q.rowCount == 0) throw { error: "Order not found" };
+    if (q.rowCount == 0) throw new CustomError(404, "Order not found");
     if (q.rows[0].fulfilled == true)
-      throw { error: "The order has already been fulfilled" };
+      throw new CustomError(409, "The order has already been fulfilled");
     else if (q.rows[0].shipper_id == null)
-      throw { error: "Cannot fulfill a order that has not been shipped yet" };
+      throw new CustomError(
+        403,
+        "Cannot fulfill a order that has not been shipped yet"
+      );
     await query("update cart set fulfilled=TRUE where cart_id=$1", [
       req.body.cart_id,
     ]);
@@ -165,6 +168,6 @@ exports.admin_fulfill_order = async (req, res) => {
       message: `Order #${req.body.cart_id} has been fulfilled successfully`,
     });
   } catch (err) {
-    return res.status(400).send({ errors: err });
+    next(err);
   }
 };

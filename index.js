@@ -12,6 +12,8 @@ const userRouter = require("./routes/user.js");
 const productRouter = require("./routes/product.js");
 const adminRouter = require("./routes/admin.js");
 
+const { customError, CustomError } = require("./helpers/errorHandler.js");
+
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
   { flags: "a" }
@@ -44,6 +46,23 @@ app.use(express.json());
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/admin", adminRouter);
+
+app.use((req, res, next) => {
+  return res.status(404).send({ error: "API Route not found" });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.setHeader("Content-Type", "application/json");
+  if (err instanceof CustomError && err.errorArray) {
+    return res.status(err.statusCode).send({ errors: err.errorArray });
+  }
+  if (err instanceof CustomError) {
+    return res.status(err.statusCode).send({ errors: err.errorArray });
+  }
+
+  return res.status(400).send({ err: err.message });
+});
 
 app.listen(PORT, () => {
   console.log("Application listening on port: " + PORT);

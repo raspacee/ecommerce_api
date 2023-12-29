@@ -1,5 +1,6 @@
 const { body } = require("express-validator");
 const { query } = require("../db/index.js");
+const { CustomError } = require("../helpers/errorHandler.js");
 
 exports.user_signup_validator = [
   body("address_line_1", "Address line 1 missing").trim().notEmpty(),
@@ -15,7 +16,7 @@ exports.user_signup_validator = [
     .custom(async (email) => {
       const q = await query("select email from user_ where email=$1", [email]);
       if (q.rowCount > 0) {
-        throw new Error("Email is already used");
+        throw new CustomError(409, "Email is already used");
       }
     }),
   body("password", "Password should be atleast 7 characters")

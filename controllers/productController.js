@@ -4,11 +4,12 @@ const es = require("../elasticsearch.js");
 const product = require("../models/productModel.js");
 const cart = require("../models/cartModel.js");
 const order = require("../models/orderModel.js");
+const { CustomError } = require("../helpers/errorHandler.js");
 
-exports.product_search = async (req, res) => {
+exports.product_search = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "err", result.array()));
   }
 
   try {
@@ -43,13 +44,12 @@ exports.product_search = async (req, res) => {
       results.push(q.rows[0]);
     }
     return res.status(200).send({ matches: results });
-  } catch (error) {
-    console.error("Error searching data:", error);
-    return res.status(400).send({ error });
+  } catch (err) {
+    next(500, err);
   }
 };
 
-exports.place_order = async (req, res) => {
+exports.place_order = async (req, res, next) => {
   /* Cart should be in this form
     [{
       product_id,
@@ -58,7 +58,7 @@ exports.place_order = async (req, res) => {
   */
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "err", result.array()));
   }
 
   const client = await pool.connect();
@@ -103,7 +103,7 @@ exports.place_order = async (req, res) => {
         total_cost += item.quantity * row.unit_price;
       }
     }
-    if (errors.length > 0) throw errors;
+    if (errors.length > 0) throw new CustomError(503, "err", errors);
     // If we reach here, it means everything is fine
 
     // Update the previous total_cost with the new total_cost
@@ -122,23 +122,22 @@ exports.place_order = async (req, res) => {
     });
     // TODO: send a email to users confirming their orders
   } catch (err) {
-    console.error(err);
     await client.query("rollback");
-    return res.status(400).send({ err });
+    next(err);
   } finally {
     client.release();
   }
 };
 
-exports.cancel_order = async (req, res) => {
+exports.cancel_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "err", result.array()));
   }
 
   try {
     const q = await cart.get_cart_by_id(req.body.cart_id);
-    if (q.rowCount == 0) throw { error: "Order ID not found" };
+    if (q.rowCount == 0) throw new CustomError(404, "Order ID not found");
 
     if (q.rows[0].ordered_by != req.user.user_id) {
       throw {
@@ -162,22 +161,20 @@ exports.cancel_order = async (req, res) => {
         .send({ message: "Successfully cancelled your order " });
     }
   } catch (err) {
-    if (err instanceof Error)
-      return res.status(400).send({ error: err.message });
-    return res.status(400).send(err);
+    next(err);
   }
 };
 
-exports.track_order = async (req, res) => {
+exports.track_order = async (req, res, next) => {
   try {
     const q = await cart.get_cart_by_id(req.params.cart_id);
-    if (q.rowCount == 0) throw { error: "Order ID not found" };
+    if (q.rowCount == 0) throw new CustomError(404, "Order ID not found");
 
     if (q.rows[0].ordered_by != req.user.user_id) {
-      throw {
-        error:
-          "You cannot track this order since you did not create this order.",
-      };
+      throw new CustomError(
+        403,
+        "You cannot track this order since you did not create this order."
+      );
     } else if (q.rows[0].shipper_id > 0) {
       const q = await cart.inner_join_shipper(req.params.cart_id);
       return res.status(200).send({ order: q.rows[0] });
@@ -185,9 +182,21 @@ exports.track_order = async (req, res) => {
       return res.status(200).send({ order: q.rows[0] });
     }
   } catch (err) {
-    console.error(err);
-    if (err instanceof Error)
-      return res.status(400).send({ error: err.message });
-    return res.status(400).send(err);
+    next(err);
+  }
+};
+
+exports.get_product = async (req, res, next) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    next(new CustomError(400, "Err", result.array()));
+  }
+
+  try {
+    const q = await product.get_product_by_id(req.params.product_id);
+    if (q.rowCount == 0) throw new CustomError(500, "Product ID not found");
+    return res.status(200).send(q.rows[0]);
+  } catch (err) {
+    next(err);
   }
 };

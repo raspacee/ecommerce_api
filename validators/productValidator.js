@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 const { query } = require("../db/index.js");
 
 exports.place_order_validator = [
@@ -11,3 +11,5 @@ exports.place_order_validator = [
 ];
 
 exports.cancel_order_validator = [body("cart_id").isInt({ min: 1 }).notEmpty()];
+
+exports.get_product_validator = [param("product_id").isInt({ min: 1 })];

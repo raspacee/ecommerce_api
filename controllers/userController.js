@@ -4,11 +4,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const userAddress = require("../models/userAddressModel.js");
 const user = require("../models/userModel.js");
+const { CustomError } = require("../helpers/errorHandler.js");
 
 exports.user_signup = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const {
@@ -56,16 +57,16 @@ exports.user_signup = async (req, res, next) => {
       .send({ message: "Successfully signed up, you can now login." });
   } catch (err) {
     await client.query("rollback");
-    return res.status(400).send({ errors: err });
+    next(err);
   } finally {
     client.release();
   }
 };
 
-exports.user_login = async (req, res) => {
+exports.user_login = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.status(400).send({ errors: result.array() });
+    next(new CustomError(400, "Err", result.array()));
   }
 
   const { email, password } = req.body;
@@ -74,7 +75,7 @@ exports.user_login = async (req, res) => {
     const q = await user.get_user_by_email(email);
     const row = q.rows[0];
     if (q.rowCount == 0) {
-      throw { error: "Email not found" };
+      throw new CustomError(404, "Email not found");
     }
     if (bcrypt.compareSync(password, row.password)) {
       const token = jwt.sign(
@@ -89,10 +90,9 @@ exports.user_login = async (req, res) => {
       );
       return res.status(200).send({ token });
     } else {
-      throw { error: "Incorrect password" };
+      throw new CustomError(401, "Incorrect password");
     }
   } catch (err) {
-    console.log(err);
-    return res.status(400).send(err);
+    next(err);
   }
 };
