@@ -58,7 +58,7 @@ app.use((err, req, res, next) => {
     return res.status(err.statusCode).send({ errors: err.errorArray });
   }
   if (err instanceof CustomError) {
-    return res.status(err.statusCode).send({ errors: err.errorArray });
+    return res.status(err.statusCode).send({ errors: err.message });
   }
 
   return res.status(400).send({ err: err.message });

@@ -57,3 +57,11 @@ exports.admin_ship_order_validator = [
 ];
 
 exports.admin_fulfill_order_validator = [body("cart_id").isInt()];
+
+exports.admin_create_shipper_validator = [
+  body("name").trim().notEmpty(),
+  body("telephone").trim().notEmpty(),
+  body("email").trim().notEmpty(),
+];
+
+exports.admin_delete_product_validator = [body("product_id").isInt()];

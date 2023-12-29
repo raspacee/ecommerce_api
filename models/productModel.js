@@ -42,3 +42,7 @@ exports.create_product = async (
   ];
   return query(text, values);
 };
+
+exports.delete_by_id = async (product_id) => {
+  return query("delete from product where product_id=$1", [product_id]);
+};

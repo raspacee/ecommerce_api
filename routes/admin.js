@@ -19,13 +19,23 @@ router.post(
 );
 
 /* Delete a product */
-router.delete("/product", (req, res) => {});
+router.delete(
+  "/product",
+  adminAuth.admin_auth,
+  adminValidator.admin_delete_product_validator,
+  adminController.admin_delete_product
+);
 
 /* Update a product information */
 router.put("/product", (req, res) => {});
 
 /* Add new shipper */
-router.post("/shipper", (req, res) => {});
+router.post(
+  "/shipper",
+  adminAuth.admin_auth,
+  adminValidator.admin_create_shipper_validator,
+  adminController.admin_create_shipper
+);
 
 /* Add new supplier */
 router.post(

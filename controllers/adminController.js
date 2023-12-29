@@ -7,6 +7,7 @@ const admin = require("../models/adminModel.js");
 const product = require("../models/productModel.js");
 const supplier = require("../models/supplierModel.js");
 const cart = require("../models/cartModel.js");
+const shipper = require("../models/shipperModel.js");
 const { CustomError } = require("../helpers/errorHandler.js");
 
 exports.admin_login = async (req, res, next) => {
@@ -167,6 +168,38 @@ exports.admin_fulfill_order = async (req, res, next) => {
     return res.status(200).send({
       message: `Order #${req.body.cart_id} has been fulfilled successfully`,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.admin_create_shipper = async (req, res, next) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    next(new CustomError(400, "Err", result.array()));
+  }
+
+  try {
+    const { name, telephone, email } = req.body;
+    const q = await shipper.create_shipper(name, telephone, email);
+    return res.status(201).send(q.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.admin_delete_product = async (req, res, next) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    next(new CustomError(400, "Err", result.array()));
+  }
+
+  try {
+    const { product_id } = req.body;
+    await product.delete_by_id(product_id);
+    return res
+      .status(200)
+      .send({ message: "Successfully deleted the product" });
   } catch (err) {
     next(err);
   }
