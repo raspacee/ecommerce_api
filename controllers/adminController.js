@@ -204,3 +204,40 @@ exports.admin_delete_product = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.admin_update_product = async (req, res, next) => {
+  try {
+    const {
+      product_id,
+      product_name,
+      product_category,
+      unit_price,
+      stock_unit,
+      description,
+      available_size,
+      available_color,
+      unit_weight,
+    } = req.body;
+
+    const q = await product.get_product_by_id(product_id);
+    if (q.rowCount == 0) throw new CustomError(404, "Product not found");
+
+    const row = q.rows[0];
+    await product.update_product(
+      product_id,
+      product_name || row.product_name,
+      product_category || row.product_category,
+      unit_price || row.unit_price,
+      stock_unit || row.stock_unit,
+      description || row.description,
+      available_size || row.available_size,
+      available_color || row.available_color,
+      unit_weight || row.unit_weight
+    );
+    return res
+      .status(200)
+      .send({ message: "Successfully updated product information" });
+  } catch (err) {
+    next(err);
+  }
+};

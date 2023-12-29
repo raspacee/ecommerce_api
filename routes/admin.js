@@ -27,7 +27,12 @@ router.delete(
 );
 
 /* Update a product information */
-router.put("/product", (req, res) => {});
+router.put(
+  "/product",
+  adminAuth.admin_auth,
+  adminValidator.admin_delete_product_validator,
+  adminController.admin_update_product
+);
 
 /* Add new shipper */
 router.post(
