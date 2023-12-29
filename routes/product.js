@@ -32,7 +32,11 @@ router.get("/categories", (req, res) => {});
 router.get("/categories/:category", (req, res) => {});
 
 /* Get all information about a product */
-router.get("/:product_id", (req, res) => {});
+router.get(
+  "/:product_id",
+  productValidator.get_product_validator,
+  productController.get_product
+);
 
 /* Post a review on a product */
 router.post("/review", (req, res) => {});
