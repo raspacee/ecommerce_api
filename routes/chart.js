@@ -9,6 +9,6 @@ router.get("/top_selling/pie", chartController.top_sellling_pie);
 router.get("/top_selling/bar", chartController.top_sellling_bar);
 
 // Get a product's monthly sales bargraph over a specific year
-router.get("/product/:product_id/:year", (req, res) => {});
+router.get("/product/:product_id/:year", chartController.month_sales_over_year);
 
 module.exports = router;

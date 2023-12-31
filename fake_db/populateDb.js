@@ -93,7 +93,7 @@ async function populate_users(client, filename) {
 
 async function populate_cart(client) {
   try {
-    for (let i = 1; i <= 2000; i++) {
+    for (let i = 1; i <= 4000; i++) {
       let user_id = await get_random_user_id(client);
       let product_id = await get_random_product_id(client);
       const date = random_date(
