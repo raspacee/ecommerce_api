@@ -93,14 +93,20 @@ async function populate_users(client, filename) {
 
 async function populate_cart(client) {
   try {
-    for (let i = 1; i <= 1000; i++) {
+    for (let i = 1; i <= 2000; i++) {
       let user_id = await get_random_user_id(client);
       let product_id = await get_random_product_id(client);
+      const date = random_date(
+        new Date("2010-01-04T15:55:16.927+05:45"),
+        new Date("2023-06-21T08:30:40.186+05:45"),
+        0,
+        23
+      );
 
       // Create a cart first
       const c = await client.query(
         "insert into cart (created_at, fulfilled, ordered_by, total_cost) values ($1, $2, $3, 0) returning *",
-        [new Date(), true, user_id]
+        [date, true, user_id]
       );
 
       let order_cart = await generate_cart(client);
@@ -117,7 +123,7 @@ async function populate_cart(client) {
           [
             item.product_id,
             item.quantity,
-            new Date(),
+            date,
             c.cart_id,
             p.rows[0].unit_price * item.quantity,
           ]
@@ -140,6 +146,13 @@ async function populate_cart(client) {
     await client.release();
     process.exit(-1);
   }
+}
+
+function random_date(start, end, startHour, endHour) {
+  var date = new Date(+start + Math.random() * (end - start));
+  var hour = (startHour + Math.random() * (endHour - startHour)) | 0;
+  date.setHours(hour);
+  return date;
 }
 
 async function get_random_user_id(client) {
@@ -174,7 +187,7 @@ async function main() {
   const client = await pool.connect();
   client.query("start transaction");
   try {
-    const p1 = await populate_products(client, "./products.csv");
+    // const p1 = await populate_products(client, "./products.csv");
     // const p2 = await populate_users(client, "./users.csv");
     const p3 = await populate_cart(client);
     console.log("Successfully added all mock data");
