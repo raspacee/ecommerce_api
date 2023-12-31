@@ -17,14 +17,13 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
 });
 
-async function populate_products(filename) {
-  const client = await pool.connect();
-  await client.query("begin transaction");
+async function populate_products(client, filename) {
   try {
     let data = fs.readFileSync(filename, "utf8");
     let rows = data.split("\n");
     let i;
-    for (i = 1; i < rows.length - 1; i++) {
+    // Only populating 500 rows for now
+    for (i = 1; i < rows.length - 500; i++) {
       let row = rows[i];
       let [name, category, price] = row.split(",");
       price = parseInt(price);
@@ -49,18 +48,14 @@ async function populate_products(filename) {
       await client.query(text, values);
       console.log(`Added product #${i}`);
     }
-    await client.query("end transaction");
   } catch (err) {
     console.error(err);
-    await client.query("rollback");
-  } finally {
-    client.release();
+    await client.release();
+    process.exit(-1);
   }
 }
 
-async function populate_users(filename) {
-  const client = await pool.connect();
-  await client.query("begin transaction");
+async function populate_users(client, filename) {
   try {
     let data = fs.readFileSync(filename, "utf8");
     let rows = data.split("\n");
@@ -89,22 +84,18 @@ async function populate_users(filename) {
       );
       console.log(`Added user #${i}`);
     }
-    await client.query("end transaction");
   } catch (err) {
     console.error(err);
-    await client.query("rollback");
-  } finally {
-    client.release();
+    await client.release();
+    process.exit(-1);
   }
 }
 
-async function populate_cart() {
-  const client = await pool.connect();
-  await client.query("begin transaction");
+async function populate_cart(client) {
   try {
     for (let i = 1; i <= 1000; i++) {
-      let user_id = await get_random_user_id();
-      let product_id = await get_random_product_id();
+      let user_id = await get_random_user_id(client);
+      let product_id = await get_random_product_id(client);
 
       // Create a cart first
       const c = await client.query(
@@ -112,7 +103,7 @@ async function populate_cart() {
         [new Date(), true, user_id]
       );
 
-      let order_cart = await generate_cart();
+      let order_cart = await generate_cart(client);
       let total_cost = 0;
       for (let item of order_cart) {
         const p = await client.query(
@@ -144,36 +135,33 @@ async function populate_cart() {
       ]);
       console.log(`Added cart #${i}`);
     }
-
-    await client.query("end transaction");
   } catch (err) {
     console.error(err);
-    await client.query("rollback");
-  } finally {
-    client.release();
+    await client.release();
+    process.exit(-1);
   }
 }
 
-async function get_random_user_id() {
-  const q = await pool.query(
+async function get_random_user_id(client) {
+  const q = await client.query(
     "SELECT user_id FROM user_ ORDER BY RANDOM() LIMIT 1"
   );
   return q.rows[0].user_id;
 }
 
-async function get_random_product_id() {
-  const q = await pool.query(
+async function get_random_product_id(client) {
+  const q = await client.query(
     "SELECT product_id FROM product ORDER BY RANDOM() LIMIT 1"
   );
   return q.rows[0].product_id;
 }
 
-async function generate_cart() {
+async function generate_cart(client) {
   let no_of_order = parseInt(Math.random() * 5) + 1;
   let orders = [];
   let product_id, quantity;
   for (let i = 0; i < no_of_order; i++) {
-    product_id = await get_random_product_id();
+    product_id = await get_random_product_id(client);
     quantity = parseInt(Math.random() * 4) + 1;
     orders.push({ product_id, quantity });
   }
@@ -182,6 +170,25 @@ async function generate_cart() {
 
 /* Uncomment and run these functions below */
 
-//  populate_products("./products.csv");
-//  populate_users("./users.csv");
-//  populate_cart();
+async function main() {
+  const client = await pool.connect();
+  client.query("start transaction");
+  try {
+    const p1 = await populate_products(client, "./products.csv");
+    // const p2 = await populate_users(client, "./users.csv");
+    const p3 = await populate_cart(client);
+    console.log("Successfully added all mock data");
+
+    console.log("Making all changes permanent");
+    client.query("end transaction");
+  } catch (err) {
+    console.error(err);
+    console.log("Rolling back all changes");
+    client.query("rollback");
+  } finally {
+    console.log("Releasing client");
+    client.release();
+  }
+}
+
+main();
