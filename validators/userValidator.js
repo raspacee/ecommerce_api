@@ -47,3 +47,14 @@ exports.user_login_validator = [
     .withMessage("Email is not correct"),
   body("password", "Password field missing").trim().notEmpty(),
 ];
+
+exports.user_update_address_validator = [
+  body("address_line_1").trim().notEmpty(),
+  body("address_line_2").trim(),
+];
+
+exports.user_update_personal_info_validator = [
+  body("telephone").trim(),
+  body("first_name").trim(),
+  body("last_name").trim(),
+];

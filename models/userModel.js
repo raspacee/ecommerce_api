@@ -32,3 +32,19 @@ exports.get_user_by_email = async (email) => {
   const values = [email];
   return query(text, values);
 };
+
+exports.get_user = async (user_id) => {
+  return query("select * from user_ where user_id=$1", [user_id]);
+};
+
+exports.update_personal_info = async (
+  user_id,
+  telephone,
+  first_name,
+  last_name
+) => {
+  return query(
+    "update user_ set telephone=$1, first_name=$2, last_name=$3 where user_id=$4",
+    [telephone, first_name, last_name, user_id]
+  );
+};

@@ -48,7 +48,4 @@ router.get(
   productController.track_order
 );
 
-// TODO: track order
-router.post("/track", (req, res) => {});
-
 module.exports = router;

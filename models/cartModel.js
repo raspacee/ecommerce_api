@@ -26,3 +26,19 @@ exports.inner_join_shipper = async (cart_id) => {
     [cart_id]
   );
 };
+
+// Get all orders made by a user
+exports.get_all_orders = async (user_id) => {
+  const carts = await query("select * from cart where ordered_by=$1", [
+    user_id,
+  ]);
+  if (carts.rowCount == 0) return [];
+  let orders = [];
+  for (let c of carts.rows) {
+    const c_id = c.cart_id;
+    const o = await query("select * from order_ where cart_id=$1", [c_id]);
+    c.orders = o.rows;
+    orders.push(c);
+  }
+  return orders;
+};
