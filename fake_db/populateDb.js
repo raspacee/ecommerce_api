@@ -124,7 +124,7 @@ async function populate_cart(client) {
             item.product_id,
             item.quantity,
             date,
-            c.cart_id,
+            c.rows[0].cart_id,
             p.rows[0].unit_price * item.quantity,
           ]
         );

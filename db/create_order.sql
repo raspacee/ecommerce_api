@@ -3,7 +3,7 @@ create table order_(
     product_id int,
     order_unit int not null,
     created_at timestamp not null,
-    cart_id int,
+    cart_id int not null,
     cost int not null,
 
     constraint fk_product
