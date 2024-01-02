@@ -128,19 +128,21 @@ exports.admin_ship_order = async (req, res, next) => {
 
   const { shipper_id, cart_id } = req.body;
   try {
-    const q = await query("select shipper_id from cart where cart_id=$1", [
-      cart_id,
-    ]);
+    const q = await cart.get_cart_by_id(cart_id);
     if (q.rows[0].shipper_id != null)
       throw new CustomError(409, "The order has already been shipped");
-    await query(
-      "update cart set shipper_id=$1, shipped_on=$2 where cart_id=$3",
-      [shipper_id, new Date(), cart_id]
-    );
+    if (q.rows[0].verified) {
+      await query(
+        "update cart set shipper_id=$1, shipped_on=$2 where cart_id=$3",
+        [shipper_id, new Date(), cart_id]
+      );
+      return res
+        .status(200)
+        .send({ message: `Order #${cart_id} has been shipped for delivery` });
+    } else {
+      return res.status(200).send({ message: "The order is not verified yet" });
+    }
     // TODO: send a email to customer to tell them order has been shipped
-    return res
-      .status(200)
-      .send({ message: `Order #${cart_id} has been shipped for delivery` });
   } catch (err) {
     next(err);
   }
