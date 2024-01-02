@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const productController = require("../controllers/productController.js");
+const paymentController = require("../controllers/paymentController.js");
 const productValidator = require("../validators/productValidator.js");
 const userAuth = require("../auth/userAuth.js");
 
@@ -8,8 +9,11 @@ router.post(
   "/order",
   userAuth.user_auth,
   productValidator.place_order_validator,
-  productController.place_order
+  productController.place_order,
+  paymentController.handle_payment
 );
+
+router.get("/order/verify/:cart_id", productController.verify_order);
 
 /* Cancel a order if the order is not shipped yet */
 router.delete(

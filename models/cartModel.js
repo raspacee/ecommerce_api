@@ -2,7 +2,7 @@ const { query } = require("../db/index.js");
 
 exports.create_cart = async (client, date, fulfilled, user_id) => {
   return client.query(
-    "insert into cart (created_at, fulfilled, ordered_by, total_cost) values ($1, $2, $3, 0) returning *",
+    "insert into cart (created_at, fulfilled, ordered_by, total_cost, verified, payment_id) values ($1, $2, $3, 0, null, null) returning *",
     [date, fulfilled, user_id]
   );
 };
@@ -41,4 +41,12 @@ exports.get_all_orders = async (user_id) => {
     orders.push(c);
   }
   return orders;
+};
+
+// Verify a cart
+exports.verify_cart = async (cart_id, payment_id) => {
+  return query(
+    "update cart set verified=true, payment_id=$1 where cart_id=$2",
+    [payment_id, cart_id]
+  );
 };

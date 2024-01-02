@@ -4,12 +4,14 @@ const es = require("../elasticsearch.js");
 const product = require("../models/productModel.js");
 const cart = require("../models/cartModel.js");
 const order = require("../models/orderModel.js");
+const payment = require("../models/paymentModel.js");
 const { CustomError } = require("../helpers/errorHandler.js");
+const { createHmac } = require("node:crypto");
 
 exports.product_search = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "err", result.array()));
+    return next(new CustomError(400, "err", result.array()));
   }
 
   try {
@@ -58,7 +60,7 @@ exports.place_order = async (req, res, next) => {
   */
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "err", result.array()));
+    return next(new CustomError(400, "err", result.array()));
   }
 
   const client = await pool.connect();
@@ -115,6 +117,9 @@ exports.place_order = async (req, res, next) => {
     let results = [];
     let q = await order.inner_join_product(c.rows[0].cart_id);
     results.push(q.rows);
+    req.total_cost = total_cost;
+    req.cart_id = c.rows[0].cart_id;
+    return next();
     return res.status(200).send({
       message: "Your order has been noted. It will be delivered soon",
       cart: c.rows[0],
@@ -129,10 +134,44 @@ exports.place_order = async (req, res, next) => {
   }
 };
 
+exports.verify_order = async (req, res, next) => {
+  const { cart_id } = req.params;
+  if (cart_id.trim() == "") {
+    return next(new CustomError(400, "cart_id missing in params"));
+  }
+
+  try {
+    const c = await cart.get_cart_by_id(cart_id);
+    if (c.rows[0].verified == true)
+      return res.status(200).send({ message: "Order already verified" });
+
+    // Verify that payment was successful
+    const { data } = req.query;
+    const decoded = JSON.parse(atob(data));
+    const hmac = createHmac("sha256", "8gBm/:&EnhH.1/q");
+    const d = hmac.update(
+      `transaction_code=${decoded.transaction_code},status=${decoded.status},total_amount=${decoded.total_amount},transaction_uuid=${decoded.transaction_uuid},product_code=EPAYTEST,signed_field_names=transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names`
+    );
+    const signature = d.digest("base64");
+    if (decoded.signature !== signature) {
+      return next(new CustomError("Invalid payment signature"));
+    } else {
+      const p = await payment.create_payment(cart_id, decoded.transaction_uuid);
+      await cart.verify_cart(cart_id, p.rows[0].payment_id);
+      return res.status(200).send({
+        message:
+          "Your payment is verified, your product will be delivered soon",
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.cancel_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "err", result.array()));
+    return next(new CustomError(400, "err", result.array()));
   }
 
   try {
@@ -189,7 +228,7 @@ exports.track_order = async (req, res, next) => {
 exports.get_product = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   try {

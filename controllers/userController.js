@@ -10,7 +10,7 @@ const { CustomError } = require("../helpers/errorHandler.js");
 exports.user_signup = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const {
@@ -67,7 +67,7 @@ exports.user_signup = async (req, res, next) => {
 exports.user_login = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const { email, password } = req.body;
@@ -101,7 +101,7 @@ exports.user_login = async (req, res, next) => {
 exports.user_update_address = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const { address_line_1, address_line_2 } = req.body;
@@ -130,7 +130,7 @@ exports.user_update_personal_info = async (req, res, next) => {
   try {
     let u = await user.get_user(req.user.user_id);
     if (u.rowCount == 0)
-      next(new CustomError(401, "User token expired or user not found"));
+      return next(new CustomError(401, "User token expired or user not found"));
     u = u.rows[0];
 
     const { telephone, first_name, last_name } = req.body;

@@ -17,6 +17,8 @@ exports.user_signup_validator = [
       const q = await query("select email from user_ where email=$1", [email]);
       if (q.rowCount > 0) {
         throw new CustomError(409, "Email is already used");
+      } else {
+        return true;
       }
     }),
   body("password", "Password should be atleast 7 characters")

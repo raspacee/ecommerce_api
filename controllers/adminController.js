@@ -13,7 +13,7 @@ const { CustomError } = require("../helpers/errorHandler.js");
 exports.admin_login = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const { email, password } = req.body;
@@ -49,7 +49,7 @@ exports.admin_login = async (req, res, next) => {
 exports.admin_create_product = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const {
@@ -95,7 +95,7 @@ exports.admin_create_product = async (req, res, next) => {
 exports.admin_create_supplier = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const { supplier_name, address, telephone, email, postal_code } = req.body;
@@ -123,7 +123,7 @@ exports.admin_create_supplier = async (req, res, next) => {
 exports.admin_ship_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   const { shipper_id, cart_id } = req.body;
@@ -149,7 +149,7 @@ exports.admin_ship_order = async (req, res, next) => {
 exports.admin_fulfill_order = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   try {
@@ -176,7 +176,7 @@ exports.admin_fulfill_order = async (req, res, next) => {
 exports.admin_create_shipper = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   try {
@@ -191,7 +191,7 @@ exports.admin_create_shipper = async (req, res, next) => {
 exports.admin_delete_product = async (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    next(new CustomError(400, "Err", result.array()));
+    return next(new CustomError(400, "Err", result.array()));
   }
 
   try {

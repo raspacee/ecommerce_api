@@ -7,6 +7,8 @@ create table cart(
     is_cancelled boolean,
     ordered_by int,
     total_cost int not null,
+    verified boolean,
+    payment_id int,
     
     constraint fk_shipper
         foreign key(shipper_id)
@@ -14,5 +16,9 @@ create table cart(
     
     constraint fk_user
         foreign key(ordered_by)
-            references user_(user_id)
+            references user_(user_id),
+
+    constraint fk_payment 
+        foreign key(payment_id)
+            references payment(payment_id)
 );
