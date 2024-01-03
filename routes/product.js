@@ -1,7 +1,9 @@
 const router = require("express").Router();
 const productController = require("../controllers/productController.js");
 const paymentController = require("../controllers/paymentController.js");
+const reviewController = require("../controllers/reviewController.js");
 const productValidator = require("../validators/productValidator.js");
+const reviewValidator = require("../validators/reviewValidator.js");
 const userAuth = require("../auth/userAuth.js");
 
 /* Place a order */
@@ -43,7 +45,12 @@ router.get(
 );
 
 /* Post a review on a product */
-router.post("/review", (req, res) => {});
+router.post(
+  "/review",
+  userAuth.user_auth,
+  reviewValidator.create_review_validator,
+  reviewController.create_review
+);
 
 /* Track a order */
 router.get(

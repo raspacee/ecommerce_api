@@ -120,11 +120,11 @@ exports.place_order = async (req, res, next) => {
     req.total_cost = total_cost;
     req.cart_id = c.rows[0].cart_id;
     return next();
-    return res.status(200).send({
-      message: "Your order has been noted. It will be delivered soon",
-      cart: c.rows[0],
-      orders: results,
-    });
+    // return res.status(200).send({
+    //   message: "Your order has been noted. It will be delivered soon",
+    //   cart: c.rows[0],
+    //   orders: results,
+    // });
     // TODO: send a email to users confirming their orders
   } catch (err) {
     await client.query("rollback");
