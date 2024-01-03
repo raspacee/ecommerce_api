@@ -7,6 +7,7 @@ placing an order, tracking an order, shipping the orders and fulfilling them.
 
 - Full text search on the product's name and description so that users can find products easily (using elasticsearch)
 - API routes to get bargraphs and piecharts for a product's sales for analysis purposes
+- Integration of Esewa pay
 - Separation of user and admin authentication
 - Separate logging of errors and other requests to different files
 - Routes to add new products and update them accordingly
