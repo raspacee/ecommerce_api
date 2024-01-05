@@ -38,6 +38,11 @@ Installing elasticsearch is optional as this API can run without elasticsearch b
 5. For now you have to manually run the SQL scripts inside the `db` directory to initialize the
    database tables
 
+### Inserting tables
+
+Create a database in PostgreSQL first, then run this command below
+`export user=[YOUR-DB-USERNAME] database=[YOUR-DB-NAME] && ./db/createTables.sh`
+
 ### Loading fake data in the database tables
 
 The scripts and generated csv data are located insid ethe `fake_db` directory.<br/>
