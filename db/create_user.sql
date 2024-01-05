@@ -1,4 +1,4 @@
-create table user_(
+create table if not exists user_(
     user_id serial primary key,
     email varchar(255) unique not null,
     address_id int,

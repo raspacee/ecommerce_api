@@ -1,4 +1,4 @@
-create table cart(
+create table if not exists cart(
     cart_id serial primary key,
     shipped_on timestamp,
     shipper_id int,
@@ -22,3 +22,5 @@ create table cart(
         foreign key(payment_id)
             references payment(payment_id)
 );
+
+alter table payment add constraint fk_cart foreign key(cart_id) references cart(cart_id);

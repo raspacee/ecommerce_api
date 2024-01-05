@@ -1,4 +1,4 @@
-create table review(
+create table if not exists review(
     review_id serial primary key,
     description text not null,
     rating smallint not null,

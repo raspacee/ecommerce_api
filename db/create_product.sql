@@ -1,4 +1,4 @@
-create table product(
+create table if not exists product(
     product_id serial primary key,
     product_name varchar(255) not null,
     product_category varchar(255),
