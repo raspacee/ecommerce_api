@@ -40,7 +40,7 @@ Installing elasticsearch is optional as this API can run without elasticsearch b
 
 ### Inserting tables
 
-Create a database in PostgreSQL first, then run this command below
+Create a database called 'ecommerce_api' in PostgreSQL first, then run this command below
 `export user=[YOUR-DB-USERNAME] database=[YOUR-DB-NAME] && ./db/createTables.sh`
 
 ### Loading fake data in the database tables
