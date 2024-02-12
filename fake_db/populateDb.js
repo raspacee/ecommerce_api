@@ -5,7 +5,7 @@
         - products.csv(contains the fake product data)
 */
 
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config({ path: __dirname + "/../.env" });
 const fs = require("fs");
 const { Pool } = require("pg");
 
@@ -148,6 +148,12 @@ async function populate_cart(client) {
   }
 }
 
+async function populate_supplier(client) {
+  const q = await client.query("insert into supplier(supplier_name, address, telephone, email, postal_code)\
+  values ($1, $2, $3, $4, $5)", ["Ram Bahadur", "Sitapaila", "9808123", "ram@gmail.com", "PP-231"])
+  return q;
+}
+
 function random_date(start, end, startHour, endHour) {
   var date = new Date(+start + Math.random() * (end - start));
   var hour = (startHour + Math.random() * (endHour - startHour)) | 0;
@@ -187,8 +193,9 @@ async function main() {
   const client = await pool.connect();
   client.query("start transaction");
   try {
-    // const p1 = await populate_products(client, "./products.csv");
-    // const p2 = await populate_users(client, "./users.csv");
+    const s1 = await populate_supplier(client);
+    const p1 = await populate_products(client, __dirname + "/products.csv");
+    const p2 = await populate_users(client, __dirname + "/users.csv");
     const p3 = await populate_cart(client);
     console.log("Successfully added all mock data");
 
